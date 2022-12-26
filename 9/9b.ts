@@ -1,129 +1,66 @@
+import { readFileSync } from "fs";
+const text = readFileSync("./input.prod").toString();
 
-import { readFileSync } from 'fs'
-const text = readFileSync('./input.test2').toString()
-
-const moves = text.split('\n')
-moves.splice(moves.length - 1, 1)
-// moves.forEach(m => console.log(m))
+const moves = text.split("\n");
+moves.splice(moves.length - 1, 1);
 
 interface Pos {
-    x: number
-    y: number
-    tail?: Pos
-    history: Hist[]
+  x: number;
+  y: number;
 }
 
-interface Hist {
-    x: number
-    y: number
-}
-const head: Pos = { x: 0, y: 0, history: [] }
-const knots: Pos[] = []
-knots.push(head)
-let current: Pos = head
-for (let i = 0; i < 9; i++) {
+const knots: Pos[] = [];
+const history: Pos[] = [];
 
-    const newknot = {
-        x: 0,
-        y: 0,
-        history: []
-    }
-    current.tail = newknot
-    current = newknot
-    knots.push(current)
+for (let i = 0; i < 10; i++) {
+  knots[i] = { x: 0, y: 0 };
 }
 
-console.log(knots)
-moves.forEach(x => {
-    const moveparts = x.split(' ')
-    const dir = moveparts[0]
-    const amount = parseInt(moveparts[1])
+function move(iHead: number, iTail: number) {
+  const head = knots[iHead];
+  const tail = knots[iTail];
 
-    console.log('');
-    console.log(x);
-    console.log('');
+  if (!tail) return;
 
-    for (let i = 0; i < amount; i++) {
-        if (dir === 'R') {
-            head.x++
-        }
-        else if (dir === 'L') {
-            head.x--
-        }
-        else if (dir === 'U') {
-            head.y++
-        }
-        else if (dir === 'D') {
-            head.y--
-        }
+  const dx = Math.abs(head.x - tail.x);
+  const dy = Math.abs(head.y - tail.y);
 
-        if (head.tail)
-            move(head, head.tail)
-    }
+  if (dy === 0 && dx >= 2) {
+    tail.x = head.x + (head.x > tail.x ? -1 : 1);
+  } else if (dx === 0 && dy >= 2) {
+    tail.y = head.y + (head.y > tail.y ? -1 : 1);
+  } else if (dx > 1 || dy > 1) {
+    tail.x += head.x > tail.x ? 1 : -1;
+    tail.y += head.y > tail.y ? 1 : -1;
+  }
+  // console.log(iHead, iTail, head, tail);
+  iHead++;
+  iTail++;
 
-    let knot: Pos | undefined = head
-    while (knot) {
-        console.log(knot.x, knot.y)
-        knot = knot.tail
-    }
-})
-
-
-function move(head: Pos, tail: Pos) {
-    if (head.y === tail.y) {
-        if (head.x > tail.x + 1) {
-            tail.x++
-        }
-        else if (head.x < tail.x - 1) {
-            tail.x--
-        }
-    }
-    else if (head.x === tail.x) {
-        if (head.y > tail.y + 1) {
-            tail.y++
-        }
-        else if (head.y < tail.y - 1) {
-            tail.y--
-        }
-    }
-    else {
-        if (head.y > tail.y + 1) {
-            tail.y++
-            tail.x = head.x
-        }
-        else if (head.y < tail.y - 1) {
-            tail.y--
-            tail.x = head.x
-        }
-        else if (head.x > tail.x + 1) {
-            tail.x++
-            tail.y = head.y
-        }
-        else if (head.x < tail.x - 1) {
-            tail.x--
-            tail.y = head.y
-        }
-    }
-
-    console.log(tail.x, tail.y);
-
-
-    if (tail.tail) {
-        move(tail, tail.tail)
-    }
-    else {
-        tail.history.push({ x: tail.x, y: tail.y })
-        console.log('')
-    }
+  move(iHead, iTail);
 }
 
-const unique: Hist[] = []
-if (current)
-    current.history.forEach(p => {
-        if (!unique.find(x => x.x === p.x && x.y === p.y)) {
-            unique.push(p)
-        }
-    })
+moves.forEach((x) => {
+  const m = x.split(" ");
+  const count = parseInt(m[1]);
+  console.log(m[0], count);
+  for (let i = 0; i < count; i++) {
+    history.push({ ...knots[9] });
+    if (m[0] === "U") knots[0].y++;
+    else if (m[0] === "D") knots[0].y--;
+    else if (m[0] === "R") knots[0].x++;
+    else if (m[0] === "L") knots[0].x--;
+    move(0, 1);
+  }
+  history.push({ ...knots[9] });
+});
 
-console.log(unique.length)
+const unique: Pos[] = [];
 
+history.forEach((p) => {
+  if (!unique.find((x) => x.x === p.x && x.y === p.y)) {
+    unique.push(p);
+  }
+});
+
+console.log(unique.length);
