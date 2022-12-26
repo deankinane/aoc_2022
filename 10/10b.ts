@@ -10,9 +10,6 @@ const cycleTimes: { [i: string]: number } = {
 const registers: { [i: string]: number } = {
   x: 1,
 };
-const strength: { [i: string]: number } = {
-  x: 0,
-};
 
 const cycles: string[] = [];
 
@@ -35,14 +32,15 @@ const crt: string[][] = [];
 
 cycles.forEach((c, i) => {
   if (crt[row] === undefined) crt[row] = [];
-  crt[row][col] = Math.abs(registers["x"] - i) < 2 ? "#" : ".";
+  crt[row][col] = Math.abs(registers["x"] - col) < 2 ? "#" : ".";
+  col++;
   if ((i + 1) % 40 === 0) {
     row++;
     col = 0;
   }
-
   const ins = c.split(" ");
   if (ins[0] === "addx") addx("x", parseInt(ins[1]));
 });
 
-console.log(strength);
+// console.log(crt);
+console.log(crt.map((c) => c.reduce((l = "", r) => (l += r))));
