@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs'
-const text = readFileSync('./input.test').toString()
+const text = readFileSync('./input.prod').toString()
 
 interface Pos {
     x: number
@@ -31,6 +31,9 @@ for (let y = 0; y < grid.length; y++) {
         }
     }
 }
+console.log('start', start)
+console.log('end', queue[0])
+// console.log(grid)
 
 function isValidStep(c: Pos, n: Pos): boolean {
     // If out of bounds
@@ -40,7 +43,9 @@ function isValidStep(c: Pos, n: Pos): boolean {
     // If already tracked
     if (queue.find((e) => e.x === n.x && e.y === n.y)) return false
 
-    const diff = grid[c.y][c.x] - grid[n.y][n.x]
+    let next = grid[n.y][n.x]
+    next = next === E ? 'z'.charCodeAt(0) : next
+    const diff = grid[c.y][c.x] - next
     return diff <= 1
 }
 
@@ -59,56 +64,66 @@ while (queue[i]) {
     i++
 }
 
+// for (let y = 0; y < grid.length; y++) {
+//     const row = grid[y]
+//     let r = ''
+//     for (let x = 0; x < row.length; x++) {
+//         r = r + `${queue.find((q) => q.x === x && q.y === y)?.c}, `
+//     }
+//     console.log(r)
+// }
 // console.log(queue)
 
 const steps: Pos[] = []
 let pos: Pos = { ...start }
 steps.push({ ...pos })
 while (grid[pos.y][pos.x] !== E) {
-    let lowest: number = 999999
-    let next: Pos = { ...pos }
-
+    const current = queue.find((q) => q.x === pos.x && q.y === pos.y)?.c || 0
+    const n = queue.find((q) => q.x === pos.x && q.y === pos.y - 1)
+    const s = queue.find((q) => q.x === pos.x && q.y === pos.y + 1)
+    const e = queue.find((q) => q.x === pos.x + 1 && q.y === pos.y)
+    const w = queue.find((q) => q.x === pos.x - 1 && q.y === pos.y)
+    // console.log(pos, current, n, s, e, w)
+    let lowest = 99999
+    let next = { ...pos }
     if (
-        pos.y - 1 >= 0 &&
+        n &&
+        current - n.c <= 1 &&
+        n.c < lowest &&
         !steps.find((q) => q.x === pos.x && q.y === pos.y - 1)
     ) {
-        lowest = queue.find((q) => q.x === pos.x && q.y === pos.y - 1)?.c || 0
-        next.y = pos.y - 1
-    }
-
-    const s = queue.find((q) => q.x === pos.x && q.y === pos.y + 1)?.c || 0
-    if (
-        pos.y + 1 < grid.length &&
-        s < lowest &&
+        next = { x: pos.x, y: pos.y - 1, c: n.c }
+        lowest = n.c
+    } else if (
+        s &&
+        current - s.c <= 1 &&
+        s.c < lowest &&
         !steps.find((q) => q.x === pos.x && q.y === pos.y + 1)
     ) {
-        lowest = s
-        next = { ...pos, y: pos.y + 1 }
-    }
-
-    const e = queue.find((q) => q.x === pos.x + 1 && q.y === pos.y)?.c || 0
-    if (
-        pos.x + 1 < grid[0].length &&
-        e < lowest &&
+        next = { x: pos.x, y: pos.y + 1, c: s.c }
+        lowest = s.c
+    } else if (
+        e &&
+        current - e.c <= 1 &&
+        e.c < lowest &&
         !steps.find((q) => q.x === pos.x + 1 && q.y === pos.y)
     ) {
-        lowest = e
-        next = { ...pos, x: pos.x + 1 }
-    }
-
-    const w = queue.find((q) => q.x === pos.x - 1 && q.y === pos.y)?.c || 0
-    if (
-        pos.x - 1 >= 0 &&
-        w < lowest &&
+        next = { x: pos.x + 1, y: pos.y, c: e.c }
+        lowest = e.c
+    } else if (
+        w &&
+        current - w.c <= 1 &&
+        w.c < lowest &&
         !steps.find((q) => q.x === pos.x - 1 && q.y === pos.y)
     ) {
-        lowest = w
-        next = { ...pos, x: pos.x - 1 }
+        next = { x: pos.x - 1, y: pos.y, c: w.c }
+        lowest = w.c
+    } else {
+        break
     }
-
     pos = next
-    steps.push({ ...pos })
-    console.log(pos)
+    steps.push({ ...next })
+    // console.log(pos, grid[pos.y][pos.x])
 }
-
+console.log(steps)
 console.log(steps.length)
