@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs'
-const text = readFileSync('./input.prod').toString()
+const text = readFileSync('./12/input.prod').toString()
 
 interface Pos {
     x: number
@@ -31,9 +31,9 @@ for (let y = 0; y < grid.length; y++) {
         }
     }
 }
+// console.log(grid)
 console.log('start', start)
 console.log('end', queue[0])
-// console.log(grid)
 
 function isValidStep(c: Pos, n: Pos): boolean {
     // If out of bounds
@@ -45,6 +45,7 @@ function isValidStep(c: Pos, n: Pos): boolean {
 
     let next = grid[n.y][n.x]
     next = next === E ? 'z'.charCodeAt(0) : next
+    next = next === S ? 'a'.charCodeAt(0) : next
     const diff = grid[c.y][c.x] - next
     return diff <= 1
 }
@@ -89,41 +90,55 @@ while (grid[pos.y][pos.x] !== E) {
     if (
         n &&
         current - n.c <= 1 &&
+        current - n.c >= 0 &&
         n.c < lowest &&
         !steps.find((q) => q.x === pos.x && q.y === pos.y - 1)
     ) {
-        next = { x: pos.x, y: pos.y - 1, c: n.c }
+        next = n
         lowest = n.c
-    } else if (
+    }
+
+    if (
         s &&
         current - s.c <= 1 &&
+        current - s.c >= 0 &&
         s.c < lowest &&
         !steps.find((q) => q.x === pos.x && q.y === pos.y + 1)
     ) {
-        next = { x: pos.x, y: pos.y + 1, c: s.c }
+        next = s
         lowest = s.c
-    } else if (
+    }
+
+    if (
         e &&
         current - e.c <= 1 &&
+        current - e.c >= 0 &&
         e.c < lowest &&
         !steps.find((q) => q.x === pos.x + 1 && q.y === pos.y)
     ) {
-        next = { x: pos.x + 1, y: pos.y, c: e.c }
+        next = e
         lowest = e.c
-    } else if (
+    }
+
+    if (
         w &&
         current - w.c <= 1 &&
+        current - w.c >= 0 &&
         w.c < lowest &&
         !steps.find((q) => q.x === pos.x - 1 && q.y === pos.y)
     ) {
-        next = { x: pos.x - 1, y: pos.y, c: w.c }
+        next = w
         lowest = w.c
-    } else {
+    }
+
+    if (lowest === 99999) {
+        console.log('failed')
         break
     }
+
     pos = next
     steps.push({ ...next })
     // console.log(pos, grid[pos.y][pos.x])
 }
-console.log(steps)
+console.log(steps[0], steps[steps.length - 2], steps[steps.length - 1])
 console.log(steps.length)
